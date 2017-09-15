@@ -42,8 +42,6 @@ class vec3 {
 	static dot(v1, v2) {
 		return v1.x*v2.x + v1.y*v2.y + v1.z*v2.z;
 	}
-
-
 }
 
 class ray {
@@ -59,14 +57,27 @@ class ray {
 
 let c = document.getElementById("rmCanvas");
 let ctx = c.getContext("2d");
-ctx.moveTo(0, 0);
-ctx.lineTo(512, 512);
-ctx.stroke();
+const WINDOW_WIDTH = c.width;
+const WINDOW_HEIGHT = c.height;
 
-const WINDOW_WIDTH = c.width
-const WINDOW_HEIGHT = c.height
+let imgData = ctx.createImageData(WINDOW_WIDTH, WINDOW_HEIGHT);
+let pixelData = imgData.data;
 
-alert(`Canvas is ${WINDOW_WIDTH}x${WINDOW_HEIGHT}`)
+function getPixelIndex(x, y) {
+	return (x + y*WINDOW_WIDTH)*4;
+}
+
+for (let y = 0; y < WINDOW_HEIGHT; y++) {
+	for (let x = 0; x < WINDOW_WIDTH; x++) {
+		let i = getPixelIndex(x, y);
+		pixelData[i] = 255*(x/(WINDOW_WIDTH-1));
+		pixelData[i+1] = 255*(y/(WINDOW_HEIGHT-1));
+		pixelData[i+2] = 0;
+		pixelData[i+3] = 255;
+	}
+}
+
+ctx.putImageData(imgData, 0, 0);
 
 // alert("Vector test");
 // let v1 = new vec3(1, 2, 3);
