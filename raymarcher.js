@@ -46,12 +46,12 @@ class vec3 {
 
 class ray {
 	constructor(origin, dir) {
-		this.origin = origin
-		this.dir = dir.normalize()
+		this.origin = origin;
+		this.dir = dir.normalize();
 	}
 
 	stepBy(dist) {
-		return new vec3(this.origin + this.dir.scale(dist))
+		return vec3.add(this.origin, this.dir.scale(dist));
 	}
 }
 
@@ -63,30 +63,45 @@ const WINDOW_HEIGHT = c.height;
 let imgData = ctx.createImageData(WINDOW_WIDTH, WINDOW_HEIGHT);
 let pixelData = imgData.data;
 
+const MAX_DEPTH = 1000;
+const MAX_STEPS = 100;
+const EPSILON = 0.0000001;
+
 //Test data
-let sphere_center = new vec3(255, 255, 0)
-let sphere_radius = 128
+let sphere_center = new vec3(255, 255, 150);
+let sphere_radius = 128;
+let camera_center = new vec3(0, 0, -1);
 
 function getPixelIndex(x, y) {
 	return (x + y*WINDOW_WIDTH)*4;
 }
 
 function sdf(point) {
-	return vec3.sub(sphere_center, point).length - sphere_radius
+	return vec3.sub(sphere_center, point).length - sphere_radius;
 }
 
 for (let y = 0; y < WINDOW_HEIGHT; y++) {
 	for (let x = 0; x < WINDOW_WIDTH; x++) {
 		let i = getPixelIndex(x, y);
-
 		pixelData[i] = 0;
 		pixelData[i+1] = 0;
 		pixelData[i+2] = 0;
 		pixelData[i+3] = 255;
 
-		let f = sdf(new vec3(x, y, 0));
-		if (f < 0) {
-			pixelData[i] = 255;
+		let march_depth = 0;
+		let steps = 0;
+		let view_ray = new ray(camera_center, vec3.sub(new vec3(x, y, 0), camera_center));
+
+		while (march_depth < MAX_DEPTH && steps < MAX_STEPS) {
+			let f = sdf(view_ray.stepBy(march_depth));
+			
+			march_depth += f;
+			steps++;
+
+			if (f < EPSILON) {
+				pixelData[i] = 255-(march_depth/300)*245;
+				break;
+			}
 		}
 	}
 }
