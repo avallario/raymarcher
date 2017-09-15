@@ -63,29 +63,32 @@ const WINDOW_HEIGHT = c.height;
 let imgData = ctx.createImageData(WINDOW_WIDTH, WINDOW_HEIGHT);
 let pixelData = imgData.data;
 
+//Test data
+let sphere_center = new vec3(255, 255, 0)
+let sphere_radius = 128
+
 function getPixelIndex(x, y) {
 	return (x + y*WINDOW_WIDTH)*4;
+}
+
+function sdf(point) {
+	return vec3.sub(sphere_center, point).length - sphere_radius
 }
 
 for (let y = 0; y < WINDOW_HEIGHT; y++) {
 	for (let x = 0; x < WINDOW_WIDTH; x++) {
 		let i = getPixelIndex(x, y);
-		pixelData[i] = 255*(x/(WINDOW_WIDTH-1));
-		pixelData[i+1] = 255*(y/(WINDOW_HEIGHT-1));
+
+		pixelData[i] = 0;
+		pixelData[i+1] = 0;
 		pixelData[i+2] = 0;
 		pixelData[i+3] = 255;
+
+		let f = sdf(new vec3(x, y, 0));
+		if (f < 0) {
+			pixelData[i] = 255;
+		}
 	}
 }
 
 ctx.putImageData(imgData, 0, 0);
-
-// alert("Vector test");
-// let v1 = new vec3(1, 2, 3);
-// let v2 = new vec3(0, -1, 5);
-
-// alert(v1.length);
-// alert(vec3.neg(v1));
-// alert(vec3.add(v1, v2));
-// alert(vec3.sub(v1, v2));
-// alert(vec3.cross(v1, v2));
-// alert(vec3.dot(v1, v2));
