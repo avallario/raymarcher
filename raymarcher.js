@@ -36,13 +36,24 @@ class vec3 {
 	}
 }
 
-alert("Vector test");
-let v1 = new vec3(1, 2, 3);
-let v2 = new vec3(0, -1, 5);
+let c = document.getElementById("rmCanvas");
+let ctx = c.getContext("2d");
+ctx.moveTo(0, 0);
+ctx.lineTo(512, 512);
+ctx.stroke();
 
-alert(v1.length);
-alert(vec3.neg(v1));
-alert(vec3.add(v1, v2));
-alert(vec3.sub(v1, v2));
-alert(vec3.cross(v1, v2));
-alert(vec3.dot(v1, v2));
+const WINDOW_WIDTH = c.width
+const WINDOW_HEIGHT = c.height
+
+alert(`Canvas is ${WINDOW_WIDTH}x${WINDOW_HEIGHT}`)
+
+// alert("Vector test");
+// let v1 = new vec3(1, 2, 3);
+// let v2 = new vec3(0, -1, 5);
+
+// alert(v1.length);
+// alert(vec3.neg(v1));
+// alert(vec3.add(v1, v2));
+// alert(vec3.sub(v1, v2));
+// alert(vec3.cross(v1, v2));
+// alert(vec3.dot(v1, v2));
