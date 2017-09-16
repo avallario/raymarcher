@@ -143,7 +143,7 @@ function update() {
 					g += sphere_diffuse[1]*light_color[1]*diffuse_factor;
 					b += sphere_diffuse[2]*light_color[2]*diffuse_factor;
 
-					let spec_factor = Math.max(0, vec3.dot(normal, bisector))**sphere_specpow;
+					let spec_factor = Math.pow(Math.max(0, vec3.dot(normal, bisector)), sphere_specpow);
 					r += sphere_specular[0]*light_color[0]*spec_factor;
 					g += sphere_specular[1]*light_color[1]*spec_factor;
 					b += sphere_specular[2]*light_color[2]*spec_factor;
