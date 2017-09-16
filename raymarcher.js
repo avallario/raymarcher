@@ -70,7 +70,11 @@ const EPSILON = 0.000001;
 //Test data
 let sphere_center_start = new vec3(0, 0, 25);
 let sphere_center = new vec3(sphere_center_start.x, sphere_center_start.y, sphere_center_start.z);
-let sphere_radius = 1;
+let sphere_radius = 0.9;
+
+let sphere2_center_start = new vec3(0, 0, 25);
+let sphere2_center = new vec3(sphere_center_start.x, sphere_center_start.y, sphere_center_start.z);
+let sphere2_radius = 0.9;
 
 let sphere_ambient = [0.075, 0, 0];
 let sphere_diffuse = [0.5, 0, 0];
@@ -91,13 +95,14 @@ function getPixelIndex(x, y) {
 }
 
 function sdf(point) {
-	return vec3.sub(sphere_center, point).length - sphere_radius;
+	return Math.min(vec3.sub(sphere_center, point).length - sphere_radius, vec3.sub(sphere2_center, point).length - sphere2_radius);
 }
 
 function update() {
 	elapsed_time = Date.now() - start_time;
 	let sphere_offset_angle = 2*Math.PI*(elapsed_time/10000);
 	sphere_center = new vec3(sphere_center_start.x + Math.cos(sphere_offset_angle), sphere_center_start.y + Math.sin(sphere_offset_angle), sphere_center_start.z + Math.sin(sphere_offset_angle*2)*5);
+	sphere2_center = new vec3(sphere2_center_start.x + Math.cos(sphere_offset_angle+Math.PI), sphere2_center_start.y + Math.sin(sphere_offset_angle+Math.PI), sphere2_center_start.z + Math.sin(sphere_offset_angle*2+Math.PI)*5);
 
 
 	for (let y = 0; y < WINDOW_HEIGHT; y++) {
