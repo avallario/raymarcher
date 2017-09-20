@@ -64,7 +64,7 @@ let imgData = ctx.createImageData(WINDOW_WIDTH, WINDOW_HEIGHT);
 let pixelData = imgData.data;
 
 const MAX_DEPTH = 1000;
-const MAX_STEPS = 100;
+const MAX_STEPS = 250;
 const EPSILON = 0.000001;
 
 //Test data
@@ -73,7 +73,7 @@ let sphere_center = new vec3(sphere_center_start.x, sphere_center_start.y, spher
 let sphere_radius = 0.9;
 
 let sphere2_center_start = new vec3(0, 0, 25);
-let sphere2_center = new vec3(sphere_center_start.x, sphere_center_start.y, sphere_center_start.z);
+let sphere2_center = new vec3(sphere2_center_start.x, sphere2_center_start.y, sphere2_center_start.z);
 let sphere2_radius = 0.9;
 
 let sphere_ambient = [0.075, 0, 0];
@@ -98,12 +98,30 @@ function sdf(point) {
 	return Math.min(vec3.sub(sphere_center, point).length - sphere_radius, vec3.sub(sphere2_center, point).length - sphere2_radius);
 }
 
+function marchRay(r) {
+	let march_depth = 0;
+	let steps = 0;
+
+	while (march_depth < MAX_DEPTH && steps < MAX_STEPS) {
+		let int_pt = r.stepBy(march_depth);
+		let f = sdf(int_pt);
+		
+		march_depth += f;
+		steps++;
+
+		if (f < EPSILON) {
+			return int_pt;
+		}
+	}
+
+	return null;
+}
+
 function update() {
 	elapsed_time = Date.now() - start_time;
 	let sphere_offset_angle = 2*Math.PI*(elapsed_time/10000);
 	sphere_center = new vec3(sphere_center_start.x + Math.cos(sphere_offset_angle), sphere_center_start.y + Math.sin(sphere_offset_angle), sphere_center_start.z + Math.sin(sphere_offset_angle*2)*5);
 	sphere2_center = new vec3(sphere2_center_start.x + Math.cos(sphere_offset_angle+Math.PI), sphere2_center_start.y + Math.sin(sphere_offset_angle+Math.PI), sphere2_center_start.z + Math.sin(sphere_offset_angle*2+Math.PI)*5);
-
 
 	for (let y = 0; y < WINDOW_HEIGHT; y++) {
 		for (let x = 0; x < WINDOW_WIDTH; x++) {
@@ -113,49 +131,57 @@ function update() {
 			pixelData[i+2] = 0;
 			pixelData[i+3] = 255;
 
-			let march_depth = 0;
-			let steps = 0;
 			let view_ray = new ray(camera_center, vec3.sub(new vec3(x/WINDOW_WIDTH-0.5, y/WINDOW_HEIGHT-0.5, 0), camera_center));
+			let int_pt = marchRay(view_ray);
 
-			while (march_depth < MAX_DEPTH && steps < MAX_STEPS) {
-				let int_pt = view_ray.stepBy(march_depth);
-				let f = sdf(int_pt);
-				
-				march_depth += f;
-				steps++;
+			if (int_pt !== null) {
+				let grad_x = sdf(new vec3(int_pt.x + EPSILON, int_pt.y, int_pt.z)) - sdf(new vec3(int_pt.x - EPSILON, int_pt.y, int_pt.z));
+				let grad_y = sdf(new vec3(int_pt.x, int_pt.y + EPSILON, int_pt.z)) - sdf(new vec3(int_pt.x, int_pt.y - EPSILON, int_pt.z));
+				let grad_z = sdf(new vec3(int_pt.x, int_pt.y, int_pt.z + EPSILON)) - sdf(new vec3(int_pt.x, int_pt.y, int_pt.z - EPSILON));
+				let gradient = new vec3(grad_x, grad_y, grad_z);
+				let normal = gradient.normalize();
+				let normal_ray = new ray(int_pt, normal);
 
-				if (f < EPSILON) {
-					let grad_x = sdf(new vec3(int_pt.x + EPSILON, int_pt.y, int_pt.z)) - sdf(new vec3(int_pt.x - EPSILON, int_pt.y, int_pt.z));
-					let grad_y = sdf(new vec3(int_pt.x, int_pt.y + EPSILON, int_pt.z)) - sdf(new vec3(int_pt.x, int_pt.y - EPSILON, int_pt.z));
-					let grad_z = sdf(new vec3(int_pt.x, int_pt.y, int_pt.z + EPSILON)) - sdf(new vec3(int_pt.x, int_pt.y, int_pt.z - EPSILON));
-					let gradient = new vec3(grad_x, grad_y, grad_z);
-					let normal = gradient.normalize();
-					let to_light = vec3.sub(light_center, int_pt).normalize();
-					let view = view_ray.dir.neg().normalize();
-					let bisector = vec3.add(view, to_light).normalize();
+				let to_light = vec3.sub(light_center, int_pt);
+				let dist_to_light = to_light.length;
+				to_light = to_light.normalize();
+				let ray_to_light = new ray(normal_ray.stepBy(EPSILON), to_light);
+				let to_light_int = marchRay(ray_to_light);
 
-					let r = sphere_ambient[0] * light_color[0];
-					let g = sphere_ambient[1] * light_color[1];
-					let b = sphere_ambient[2] * light_color[2];
-
-					let diffuse_factor = Math.max(0, vec3.dot(normal, to_light));
-					r += sphere_diffuse[0]*light_color[0]*diffuse_factor;
-					g += sphere_diffuse[1]*light_color[1]*diffuse_factor;
-					b += sphere_diffuse[2]*light_color[2]*diffuse_factor;
-
-					let spec_factor = Math.pow(Math.max(0, vec3.dot(normal, bisector)), sphere_specpow);
-					r += sphere_specular[0]*light_color[0]*spec_factor;
-					g += sphere_specular[1]*light_color[1]*spec_factor;
-					b += sphere_specular[2]*light_color[2]*spec_factor;
-
-					pixelData[i] = r*255;
-					pixelData[i+1] = g*255;
-					pixelData[i+2] = b*255;
-					break;
+				if (to_light_int !== null) {
+					let dist_to_light_int = vec3.sub(to_light_int, int_pt).length;
+					if (dist_to_light_int < dist_to_light) {
+						pixelData[i] = sphere_ambient[0]*light_color[0]*255;
+						pixelData[i+1] = sphere_ambient[1]*light_color[1]*255;
+						pixelData[i+2] = sphere_ambient[2]*light_color[2]*255;
+						continue;
+					}
 				}
+				
+				let view = view_ray.dir.neg().normalize();
+				let bisector = vec3.add(view, to_light).normalize();
+
+				let r = sphere_ambient[0]*light_color[0];
+				let g = sphere_ambient[1]*light_color[1];
+				let b = sphere_ambient[2]*light_color[2];
+
+				let diffuse_factor = Math.max(0, vec3.dot(normal, to_light));
+				r += sphere_diffuse[0]*light_color[0]*diffuse_factor;
+				g += sphere_diffuse[1]*light_color[1]*diffuse_factor;
+				b += sphere_diffuse[2]*light_color[2]*diffuse_factor;
+
+				let spec_factor = Math.pow(Math.max(0, vec3.dot(normal, bisector)), sphere_specpow);
+				r += sphere_specular[0]*light_color[0]*spec_factor;
+				g += sphere_specular[1]*light_color[1]*spec_factor;
+				b += sphere_specular[2]*light_color[2]*spec_factor;
+
+				pixelData[i] = r*255;
+				pixelData[i+1] = g*255;
+				pixelData[i+2] = b*255;
 			}
 		}
 	}
+
 
 	ctx.putImageData(imgData, 0, 0);
 }
