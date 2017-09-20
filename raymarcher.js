@@ -64,7 +64,7 @@ let imgData = ctx.createImageData(WINDOW_WIDTH, WINDOW_HEIGHT);
 let pixelData = imgData.data;
 
 const MAX_DEPTH = 1000;
-const MAX_STEPS = 250;
+const MAX_STEPS = 5000;
 const EPSILON = 0.000001;
 
 //Test data
