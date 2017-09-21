@@ -66,6 +66,8 @@ let pixelData = imgData.data;
 const MAX_DEPTH = 1000;
 const MAX_STEPS = 5000;
 const EPSILON = 0.000001;
+const GAMMA = 2.2
+const GAMMA_CORRECT = false;
 
 //Test data
 let sphere_center_start = new vec3(0, 0, 25);
@@ -76,8 +78,8 @@ let sphere2_center_start = new vec3(0, 0, 25);
 let sphere2_center = new vec3(sphere2_center_start.x, sphere2_center_start.y, sphere2_center_start.z);
 let sphere2_radius = 0.9;
 
-let sphere_ambient = [0.075, 0, 0];
-let sphere_diffuse = [0.5, 0, 0];
+let sphere_ambient = [0.025, 0.04, 0.075];
+let sphere_diffuse = [0.1, 0.3, 0.5];
 let sphere_specular = [0.3, 0.3, 0.3];
 let sphere_specpow = 16;
 
@@ -174,6 +176,16 @@ function update() {
 				r += sphere_specular[0]*light_color[0]*spec_factor;
 				g += sphere_specular[1]*light_color[1]*spec_factor;
 				b += sphere_specular[2]*light_color[2]*spec_factor;
+
+				if (r > 1) r = 1;
+				if (g > 1) g = 1;
+				if (b > 1) b = 1;
+
+				if (GAMMA_CORRECT) {
+					r = Math.pow(r, 1/GAMMA);
+					g = Math.pow(g, 1/GAMMA);
+					b = Math.pow(b, 1/GAMMA);
+				}
 
 				pixelData[i] = r*255;
 				pixelData[i+1] = g*255;
