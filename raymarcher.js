@@ -172,7 +172,7 @@ function update() {
 //	sphere1.origin = new vec3(sphere1.init_origin.x + Math.cos(sphere_offset_angle), sphere1.init_origin.y + Math.sin(sphere_offset_angle), sphere1.init_origin.z + Math.sin(sphere_offset_angle*2)*5);
 	sphere2.origin = new vec3(sphere2.init_origin.x, sphere2.init_origin.y + Math.sin(sphere_offset_angle/3)*0.2, sphere2.init_origin.z);
 	sphere1.origin = new vec3(sphere2.origin.x + Math.sin(sphere_offset_angle*1.2-Math.PI/2)*2, sphere2.origin.y + Math.cos(sphere_offset_angle)*2, sphere2.origin.z + Math.sin(sphere_offset_angle)*2);
-	sphere3.origin = new vec3(sphere1.origin.x + Math.sin(sphere_offset_angle*3+Math.PI/2)*0.5, sphere1.origin.y + Math.cos(sphere_offset_angle*3)*0.5, sphere1.origin.z + Math.sin(sphere_offset_angle*3)*0.5);
+	sphere3.origin = new vec3(sphere1.origin.x + Math.sin(sphere_offset_angle*3+Math.PI/2)*0.5, sphere1.origin.y + Math.cos(sphere_offset_angle*3.2)*0.5, sphere1.origin.z + Math.sin(sphere_offset_angle*3)*0.5);
 
 	for (let y = 0; y < WINDOW_HEIGHT; y++) {
 		for (let x = 0; x < WINDOW_WIDTH; x++) {
